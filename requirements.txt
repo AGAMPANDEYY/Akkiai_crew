@@ -5,3 +5,4 @@ crewai-tools
 supabase
 diskcache
 anthropic
+python-Levenshtein

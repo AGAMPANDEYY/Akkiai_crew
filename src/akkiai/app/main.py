@@ -24,7 +24,7 @@ import requests
 import crewuserinputs
 from diskcache import Cache
 from pinecone import Pinecone
-
+from Levenshtein import ratio
 
 
 app = FastAPI(docs_url=None, redoc_url=None)
@@ -80,6 +80,9 @@ class ChatInputs(BaseModel):
     MESSAGE: str
     MODEL_NAME: str
     ENTITY_ID: str
+    PERM_KB: str 
+    TEMP_KB: str
+    CHARACTER: str 
     HASH: str
 
 class TrainInputs(BaseModel):
@@ -365,8 +368,8 @@ class ConversationHistory:
                 result.append(turn)
         # Return the turns in the original order
         return list(reversed(result))
+    
 conversation_history= ConversationHistory()
-
 
 def upsert_pc_data(pc,index,entity_id, message_id, user_input, llm_response):
 
@@ -395,8 +398,196 @@ def upsert_pc_data(pc,index,entity_id, message_id, user_input, llm_response):
     )
 
 
+def update_perm_kb(pc,message_id,entity_id, perm_kb):
+    """
+    Updating the Permanent knowledge base with the new conversation details.
+    """
+    perm_kb_to_be_upserted= perm_kb
+    index=pc.Index(host="https://permanent-kb-py172ny.svc.aped-4627-b74a.pinecone.io")
+
+    embeddings= pc.inference.embed(
+        model="multilingual-e5-large",
+        inputs=[perm_kb],
+        parameters={"input_type": "passage", "truncate": "END"}
+    ) 
+
+    "Checking if a data already exists in the RAG and Upserting only if it doesn't exist"
+
+    update_data_embeddings= pc.inference.embed(
+        model="multilingual-e5-large",
+        inputs=[perm_kb],
+        parameters={"input_type": "passage", "truncate": "END"}
+    )
+    retrived_data= get_perm_kb_RAG(pc,entity_id,update_data_embeddings[0].values, k=1)
+    retrieved_perm_kb=[]
+    for match in retrived_data.get('matches',[]):
+        metadata=match.get('metadata',{})
+        if metadata:
+            retrieved_perm_kb.append(metadata.get('perm_kb', '').strip())
+        else:
+            retrieved_perm_kb="Nil"
+
+    perm_kb="\n\n".join(retrieved_perm_kb)
+    perm_kb_retrived= perm_kb
+
+    threshold=0.8
+    similarity = ratio(perm_kb_retrived, perm_kb_to_be_upserted)  # Returns a similarity score between 0 and 1
+    if (similarity <= threshold):
+        """
+        Only upsert the data if the perm_kb_to_be_upserted is less than 80% similar to perm_kb_retrived
+        """
+
+        vectors=[]
+        for d, e in zip([perm_kb], embeddings):
+            vectors.append({
+                "id": message_id,
+                "values": e['values'],
+                "metadata": {"perm_kb": perm_kb}
+            })
+
+        index.upsert(
+            vectors=vectors,
+            namespace=entity_id
+        )
+
+def update_temp_kb(pc,message_id, entity_id, temp_kb):
+    """
+    Updating the temporary knowledge base with the new conversation details.
+    """
+    temp_kb_to_be_upserted= temp_kb
+    index=pc.Index(host="https://temporary-kb-py172ny.svc.aped-4627-b74a.pinecone.io")
+
+    embeddings= pc.inference.embed(
+        model="multilingual-e5-large",
+        inputs=[temp_kb],
+        parameters={"input_type": "passage", "truncate": "END"}
+    ) 
+
+    "Checking if a data already exists in the RAG and not pushing it then"
+
+    data_to_be_upserted_embeddings= pc.inference.embed(
+        model="multilingual-e5-large",
+        inputs=[temp_kb],
+        parameters={"input_type": "passage", "truncate": "END"}
+    )
+    retrived_data= get_temp_kb_RAG(pc,entity_id,data_to_be_upserted_embeddings[0].values, k=1)
+
+    retrived_temp_kb=[]
+    for match in retrived_data.get('matches',[]):
+        metadata=match.get('metadata',{})
+        if metadata:
+            retrived_temp_kb.append(metadata.get('temp_kb', '').strip())
+        else:
+            retrived_temp_kb="Nil"
+
+    temp_kb="\n\n".join(retrived_temp_kb)
+    temp_kb_retrived= temp_kb
+
+    threshold=0.8
+    similarity = ratio(temp_kb_retrived, temp_kb_to_be_upserted)  # Returns a similarity score between 0 and 1
+    if (similarity <= threshold):
+        """
+        Only upsert the data if the character_to_be_upserted is less than 80% similar to character_retrived
+        """
+        vectors=[]
+        for d, e in zip([temp_kb], embeddings):
+            vectors.append({
+                "id": message_id,
+                "values": e['values'],
+                "metadata": {"temp_kb": temp_kb}
+            })
+
+        index.upsert(
+            vectors=vectors,
+            namespace=entity_id
+        )
+
+def update_character_kb(pc,message_id, entity_id, character):
+    """
+    Updating the character knowledge base with the new conversation details.
+    """
+    character_to_be_upserted=character
+    index=pc.Index(host="https://character-kb-py172ny.svc.aped-4627-b74a.pinecone.io")
+    embeddings= pc.inference.embed(
+        model="multilingual-e5-large",
+        inputs=[character],
+        parameters={"input_type": "passage", "truncate": "END"}
+    ) 
+
+    "Checking if a data already exists in the RAG and not pushing it then"
+
+    update_data_embeddings= pc.inference.embed(
+        model="multilingual-e5-large",
+        inputs=[character],
+        parameters={"input_type": "passage", "truncate": "END"}
+    )
+    retrived_data= get_character_RAG(pc,entity_id,update_data_embeddings[0].values, k=1)
+    retrieved_character=[]
+    for match in retrived_data.get('matches',[]):
+        metadata=match.get('metadata',{})
+        if metadata:
+            retrieved_character.append(metadata.get('character', '').strip())
+        else:
+            retrieved_character="Nil"
+
+    character="\n\n".join(retrieved_character)
+    character_retrieved= character
+
+    threshold=0.8
+    similarity = ratio(character_retrieved, character_to_be_upserted)  # Returns a similarity score between 0 and 1
+    if (similarity <= threshold):
+        """
+        Only upsert the data if the character_to_be_upserted is less than 80% similar to character_retrived
+        """
+
+        vectors=[]
+        for d, e in zip([character], embeddings):
+            vectors.append({
+                "id": message_id,
+                "values": e['values'],
+                "metadata": {"character": character}
+            })
+
+        index.upsert(
+            vectors=vectors,
+            namespace=entity_id
+        )
+
+def get_perm_kb_RAG(pc,entity_id, vector, k=3):
+    index=pc.Index(host="https://permanent-kb-py172ny.svc.aped-4627-b74a.pinecone.io")
+    result=index.query(
+        namespace=entity_id,
+        vector=vector,
+        top_k=k,
+        include_values=False,
+        include_metadata=True
+    )
+    return result
+
+def get_temp_kb_RAG(pc,entity_id, vector, k=3):
+    index=pc.Index(host="https://temporary-kb-py172ny.svc.aped-4627-b74a.pinecone.io")
+    result=index.query(
+        namespace=entity_id,
+        vector=vector,
+        top_k=k,
+        include_values=False,
+        include_metadata=True
+    )
+    return result    
+
+def get_character_RAG(pc,entity_id, vector, k=3):
+    index=pc.Index(host="https://character-kb-py172ny.svc.aped-4627-b74a.pinecone.io")
+    result=index.query(
+        namespace=entity_id,
+        vector=vector,
+        top_k=k,
+        include_values=False,
+        include_metadata=True
+    )
+    return result 
+
 #running all the chats simultaneously in the background
-async def chat_bg( input,input_message, kickoff_id,create_date, API_NAME):
+async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
     
     pc=Pinecone(api_key=PINECONE_API_KEY)
     index=pc.Index(host="https://akkiai-chat-py172ny.svc.aped-4627-b74a.pinecone.io")
@@ -412,10 +603,19 @@ async def chat_bg( input,input_message, kickoff_id,create_date, API_NAME):
     result=index.query(
         namespace=entity_id,
         vector=input_embeddings[0].values,
-        top_k=3,
+        top_k=1,
         include_values=False,
         include_metadata=True
     )
+    
+    """
+    Retriveing Permanent Temperory and Character Knowledge of the Entity
+    """
+
+    result_perm_kb= get_perm_kb_RAG(pc,entity_id, input_embeddings[0].values, k=1)
+    result_temp_kb= get_temp_kb_RAG(pc,entity_id, input_embeddings[0].values, k=1)
+    result_character=get_character_RAG(pc,entity_id,input_embeddings[0].values, k=1)
+    
 
     retrieved_contexts = []
     for match in result.get('matches', []):
@@ -428,16 +628,72 @@ async def chat_bg( input,input_message, kickoff_id,create_date, API_NAME):
             retrieved_contexts="Nil"
     
     context_string = "\n\n".join(retrieved_contexts)
-    if retrieved_contexts=="Nil":
-        system_message="You are an experienced, helpful assistant."
-    else:
-        system_message = f"You are an experienced, helpful assistant. Here is relevant conversation history:\n{context_string}\nPlease assist the user with their query."
+
+    retrieved_perm_kb=[]
+    retrieved_temp_kb=[]
+    retrieved_character=[]
+
+    for match in result_perm_kb.get('matches', []):
+        metadata = match.get('metadata', {})
+        if metadata:
+            retrieved_perm_kb.append(metadata.get('perm_kb', '').strip())
+        else:
+            retrieved_perm_kb="Nil"
+
+    perm_kb="\n\n".join(retrieved_perm_kb)
+
+    for match in result_temp_kb.get('matches', []):
+        metadata = match.get('metadata', {})
+        if metadata:
+            retrieved_temp_kb.append(metadata.get('temp_kb', '').strip())
+        else:
+            retrieved_temp_kb="Nil"
+        
+    temp_kb="\n\n".join(retrieved_temp_kb)
+
+    for match in result_character.get('matches',[]):
+        metadata=match.get('metadata',{})
+        if metadata:
+            retrieved_character.append(metadata.get('character', '').strip())
+        else:
+            retrieved_character="Nil"
+
+    character="\n\n".join(retrieved_character)
+
+    #print("The RAG retrived data. \n Permanent KB: ", perm_kb, "\n Temporary KB: ",temp_kb,"\n character: ",character, "\n context of past conversation:", context_string)
     
+    system_prompt = f"""
+        You are a highly specialized and empathetic assistant with deep expertise in tailoring your responses to individual users. Your role is to provide accurate, insightful, and personalized advice by taking into account the user's long-term background, current focus, personality traits, and past conversation context.
+
+        Below is the detailed profile of the user:
+        -------------------------------------------------
+        Permanent Knowledge:
+        {perm_kb}
+
+        Temporary Knowledge:
+        {temp_kb}
+
+        Character Profile:
+        {character}
+
+        Recent Conversation Context:
+        {context_string}
+        -------------------------------------------------
+
+        When responding to the user's queries, please ensure that:
+        - You incorporate relevant details from the permanent knowledge to reflect the user's long-term expertise and interests.
+        - You factor in the temporary knowledge to address the user's current focus and immediate concerns.
+        - You adjust your tone and style according to the character profile, ensuring that your response is empathetic, thoughtful, and aligned with the user's personality.
+        - You leverage the conversation context to maintain continuity and coherence in your responses, ensuring that previous discussions are respected and built upon.
+
+        Your answer should be precise, well-organized, and directly address the user's query while remaining deeply personalized and context-aware.
+        """
+    print(system_prompt)
     if API_NAME=="claude-3-haiku-20240307":        
-        conversation_history.update_user_turn(input.MESSAGE)
+        #conversation_history.update_user_turn(input.MESSAGE)
         client= anthropic.Anthropic(api_key=ANTHROPIC_API)
         MODEL_NAME="claude-3-haiku-20240307"
-        system_message = f"You are an experienced, helpful assistant. Here is relevant conversation history:\n{context_string}\nPlease assist the user with their query."
+        system_message = system_prompt
 
         completion = client.messages.create(
                     model=MODEL_NAME,
@@ -448,7 +704,17 @@ async def chat_bg( input,input_message, kickoff_id,create_date, API_NAME):
                     system=[
                         {"type": "text", "text": system_message,"cache_control": {"type": "ephemeral"}},
                         ],
-                    messages=conversation_history.get_turns(),
+                    #messages=conversation_history.get_turns(),
+                    messages=[{
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": input.MESSAGE,
+                            "cache_control": {"type": "ephemeral"}
+                        }
+                    ]
+                }]
                 )
         
         message_id= completion.id
@@ -457,12 +723,13 @@ async def chat_bg( input,input_message, kickoff_id,create_date, API_NAME):
         conversation_history.update_assistant_turn(response)
 
     elif API_NAME=="deepseek-chat":
-        system_message = f"You are an experienced, helpful assistant. Here is relevant conversation history:\n{context_string}\nPlease assist the user with their query."
+        system_message = system_prompt
         conversation_history.update_user_turn(input.MESSAGE)
         client= OpenAI(api_key=DEEPSEEK_API, base_url="https://api.deepseek.com")
         completion=client.chat.completions.create(
             model="deepseek-chat",
-            messages=conversation_history.get_turns() + [{"role":"system","content":system_message}]
+            #messages=conversation_history.get_turns() + [{"role":"system","content":system_message}]
+            messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
         )
         response= completion.choices[0].message.content
         message_id=completion.id
@@ -475,7 +742,8 @@ async def chat_bg( input,input_message, kickoff_id,create_date, API_NAME):
             client= OpenAI(api_key=ChatGPT_API)
             completion = client.chat.completions.create(
                 model="gpt-4o-mini",
-                messages= conversation_history.get_turns() + [{"role":"system","content":system_message}]
+                #messages= conversation_history.get_turns() + [{"role":"system","content":system_prompt}]
+                messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
             )
             response= completion.choices[0].message.content
             message_id=completion.id
@@ -487,7 +755,8 @@ async def chat_bg( input,input_message, kickoff_id,create_date, API_NAME):
           client= OpenAI(api_key=GROK_API, base_url="https://api.x.ai/v1")
           completion = client.chat.completions.create(
                 model="gpt-4o-mini",
-                messages=conversation_history.get_turns() + [{"role":"system","content":system_message}]
+                #messages=conversation_history.get_turns() + [{"role":"system","content":system_prompt}]
+                messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
             )
           response= completion.choices[0].message.content
           message_id=completion.id
@@ -499,7 +768,8 @@ async def chat_bg( input,input_message, kickoff_id,create_date, API_NAME):
         client= OpenAI(api_key=LLAMA_3_API_KEY, base_url="https://api.llama-api.com")
         completion = client.chat.completions.create(
                 model="llama3.1-70b",
-                messages=conversation_history.get_turns() + [{"role":"system","content":system_message}]
+                #messages=conversation_history.get_turns() + [{"role":"system","content":system_prompt}]
+                messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
             )
         response= completion.choices[0].message.content
         message_id=str(uuid.uuid4())
@@ -512,6 +782,14 @@ async def chat_bg( input,input_message, kickoff_id,create_date, API_NAME):
     Upserting the data for long term user specific menory 
     """
     upsert_pc_data(pc,index,entity_id, message_id,user_input=input.MESSAGE, llm_response=response)
+
+    update_perm_kb(pc,message_id,entity_id,input.PERM_KB)
+
+    update_temp_kb(pc,message_id,entity_id,input.TEMP_KB)
+
+    update_character_kb(pc,message_id, entity_id,input.CHARACTER)
+
+    print("Uperted Permanent Temporary and Character Knowledge Database")
 
     message_id=completion.id
     task_name=completion.model
@@ -528,7 +806,10 @@ async def chat_bg( input,input_message, kickoff_id,create_date, API_NAME):
     supabase.table("kickoff_details").update({'kickoff_id':message_id,'job_status':job_status, 'update_date':update_date,}).eq("create_date",create_date).execute()
     supabase.table("run_details").insert({"kickoff_id": message_id,'task_name':task_name,'job_id':job_id, 'input':input_message,'output':response}).execute()
     webhook_url =os.environ.get("WEBHOOK_URL")
-        
+    return response
+    """
+    NO need to send Webhook call for Chat Endpoint - Rashmi 14th Feb 
+    """        
     try:
         response=requests.post(
             webhook_url,
@@ -580,9 +861,12 @@ async def chat(input: ChatInputs, background_tasks: BackgroundTasks):
            
 
             supabase.table("kickoff_details").insert({"kickoff_id": kickoff_id, "job_status": job_status, "create_date":create_date, "update_date":update_date}).execute()
-            background_tasks.add_task(chat_bg,input,input_message,kickoff_id,create_date,model_name)
+            #background_tasks.add_task(chat_bg,input,input_message,kickoff_id,create_date,model_name)
+            response= await chat_bg(input,input_message,kickoff_id,create_date,model_name)
+
+            return {'response':response}
      
-            return {"The Chat has been submitted. Message ID:": kickoff_id}
+            #return {"The Chat has been submitted. Message ID:": kickoff_id}
         
     except Exception as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
