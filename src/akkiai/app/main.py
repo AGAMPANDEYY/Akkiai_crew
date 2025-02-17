@@ -80,10 +80,13 @@ class ChatInputs(BaseModel):
     MESSAGE: str
     MODEL_NAME: str
     ENTITY_ID: str
-    PERM_KB: str 
-    TEMP_KB: str
-    CHARACTER: str 
     HASH: str
+    
+class UpsertInputs(BaseModel):
+    MESSAGE: str 
+    ENTITY_ID: str
+    UPSERT_TYPE: str 
+    HASH: str 
 
 class TrainInputs(BaseModel):
     BUSINESS_DETAILS: str
@@ -371,7 +374,7 @@ class ConversationHistory:
     
 conversation_history= ConversationHistory()
 
-def upsert_pc_data(pc,index,entity_id, message_id, user_input, llm_response):
+async def upsert_pc_data(pc,index,entity_id, message_id, user_input, llm_response):
 
     """
     Upserting the past conversation of each user with namespaces for Long term memory.
@@ -398,7 +401,7 @@ def upsert_pc_data(pc,index,entity_id, message_id, user_input, llm_response):
     )
 
 
-def update_perm_kb(pc,message_id,entity_id, perm_kb):
+async def update_perm_kb(pc,message_id,entity_id, perm_kb):
     """
     Updating the Permanent knowledge base with the new conversation details.
     """
@@ -427,8 +430,7 @@ def update_perm_kb(pc,message_id,entity_id, perm_kb):
         else:
             retrieved_perm_kb="Nil"
 
-    perm_kb="\n\n".join(retrieved_perm_kb)
-    perm_kb_retrived= perm_kb
+    perm_kb_retrived="\n\n".join(retrieved_perm_kb)
 
     threshold=0.8
     similarity = ratio(perm_kb_retrived, perm_kb_to_be_upserted)  # Returns a similarity score between 0 and 1
@@ -450,7 +452,7 @@ def update_perm_kb(pc,message_id,entity_id, perm_kb):
             namespace=entity_id
         )
 
-def update_temp_kb(pc,message_id, entity_id, temp_kb):
+async def update_temp_kb(pc,message_id, entity_id, temp_kb):
     """
     Updating the temporary knowledge base with the new conversation details.
     """
@@ -480,8 +482,7 @@ def update_temp_kb(pc,message_id, entity_id, temp_kb):
         else:
             retrived_temp_kb="Nil"
 
-    temp_kb="\n\n".join(retrived_temp_kb)
-    temp_kb_retrived= temp_kb
+    temp_kb_retrived="\n\n".join(retrived_temp_kb)
 
     threshold=0.8
     similarity = ratio(temp_kb_retrived, temp_kb_to_be_upserted)  # Returns a similarity score between 0 and 1
@@ -502,7 +503,7 @@ def update_temp_kb(pc,message_id, entity_id, temp_kb):
             namespace=entity_id
         )
 
-def update_character_kb(pc,message_id, entity_id, character):
+async def update_character_kb(pc,message_id, entity_id, character):
     """
     Updating the character knowledge base with the new conversation details.
     """
@@ -530,8 +531,7 @@ def update_character_kb(pc,message_id, entity_id, character):
         else:
             retrieved_character="Nil"
 
-    character="\n\n".join(retrieved_character)
-    character_retrieved= character
+    character_retrieved="\n\n".join(retrieved_character)
 
     threshold=0.8
     similarity = ratio(character_retrieved, character_to_be_upserted)  # Returns a similarity score between 0 and 1
@@ -777,20 +777,6 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
         completion.id=message_id
         conversation_history.update_assistant_turn(response)
 
-
-    """
-    Upserting the data for long term user specific menory 
-    """
-    upsert_pc_data(pc,index,entity_id, message_id,user_input=input.MESSAGE, llm_response=response)
-
-    update_perm_kb(pc,message_id,entity_id,input.PERM_KB)
-
-    update_temp_kb(pc,message_id,entity_id,input.TEMP_KB)
-
-    update_character_kb(pc,message_id, entity_id,input.CHARACTER)
-
-    print("Uperted Permanent Temporary and Character Knowledge Database")
-
     message_id=completion.id
     task_name=completion.model
     """
@@ -870,6 +856,50 @@ async def chat(input: ChatInputs, background_tasks: BackgroundTasks):
         
     except Exception as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+"""
+/UPSERT endpoint to push data to Temp_KB, Perm_KB or Character KB
+"""
+@app.post("/upsert", dependencies= [Depends(authenticate_api_key)])
+async def upsert(inputs: UpsertInputs, background_tasks: BackgroundTasks):
+    try:
+        data= inputs.MESSAGE
+        entity_id= inputs.ENTITY_ID
+        upsert_type=inputs.UPSERT_TYPE
+        received_hash=inputs.HASH
+        message_id= str(uuid.uuid4())
+
+        data_string=f"{data}|{entity_id}|{upsert_type}"
+
+        #compute hash from data string
+        computed_hash= await compute_hash(data_string,SECRET_KEY)
+
+        # Validate the hash
+        if not hmac.compare_digest(received_hash, computed_hash):
+            raise HTTPException(status_code=401, detail="Unauthorized: Hash does not match")
+    
+        else: 
+
+            pc=Pinecone(api_key=PINECONE_API_KEY)
+
+            if upsert_type == "perm_kb":
+              await update_perm_kb(pc, message_id, entity_id, data)
+            elif upsert_type == "temp_kb":
+                await update_temp_kb(pc, message_id, entity_id, data)
+            elif upsert_type == "character":
+                await update_character_kb(pc, message_id, entity_id, data)
+            elif upsert_type == "conversation_history":
+                await upsert_pc_data(pc, entity_id, user_input=data, llm_response="NILL")
+            else:
+               raise HTTPException(status_code=400, detail="Invalid upsert type")
+            
+            return {"response": f"Upsert to {upsert_type} successful"}
+        
+    except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
 
 @app.post("/train", dependencies=[Depends(authenticate_api_key)])
 async def train(inputs: TrainInputs):

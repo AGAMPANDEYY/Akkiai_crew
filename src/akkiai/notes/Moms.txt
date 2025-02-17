@@ -99,3 +99,36 @@ MoM 13th
 2. Create Embeddings with OpenAI for token optimisation.  (2nd task)
 3. How to build Persoalised Dynamic-RAG for each user for Chat endpoint first. (Immediate task) (First searches rag, if no info fetch external)
 
+
+
+15th Feb 
+
+1. Upsert the data to DB pinecone only when decided 
+2. Build some indicator to decide where should the content go (which db should it go to)
+3. We would need to do independent upserting and fetching of different.
+4. Segregate the API endpoints make upsert
+
+/CHAT (DO not upsert anythig going  to chat endpoint for now)
+
+{
+  "MESSAGE": "moving out of my city and school as you remember i told you about, is very tough but recently i heard that news which makes me think what is wrong banning the show",
+  "MODEL_NAME": "claude-3-haiku-20240307",
+  "ENTITY_ID": "agam-6",
+  "HASH": "7fad4568c75a8783a345525fcd6932b0d480727519a5d98144919eecd455feff"
+}
+
+
+/UPSERT ---> {Success, Failure response only}  ONLY CREATE KB THROUGH UPSERT ENDPOINT.
+
+{
+  "MESSAGE": "moving out of my city and school as you remember i told you about, is very tough but recently i heard that news which makes me think what is wrong banning the show",
+  "ENTITY_ID": "agam-6",
+  "TYPE": "TEMP_KB",
+  "HASH": "7fad4568c75a8783a345525fcd6932b0d480727519a5d98144919eecd455feff"
+
+}
+
+5. Find out how to optimise using system prompt after fetching from RAG. I can't keep on sending same size documents each time 
+after fetching from RAG.
+
+6. Host updated API endpoints this on another ec2 instance.  
