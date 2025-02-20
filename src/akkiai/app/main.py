@@ -421,7 +421,7 @@ async def update_perm_kb(pc,message_id,entity_id, perm_kb):
         inputs=[perm_kb],
         parameters={"input_type": "passage", "truncate": "END"}
     )
-    retrived_data= get_perm_kb_RAG(pc,entity_id,update_data_embeddings[0].values, k=1)
+    retrived_data= await get_perm_kb_RAG(pc,entity_id,update_data_embeddings[0].values, k=1)
     retrieved_perm_kb=[]
     for match in retrived_data.get('matches',[]):
         metadata=match.get('metadata',{})
@@ -472,7 +472,7 @@ async def update_temp_kb(pc,message_id, entity_id, temp_kb):
         inputs=[temp_kb],
         parameters={"input_type": "passage", "truncate": "END"}
     )
-    retrived_data= get_temp_kb_RAG(pc,entity_id,data_to_be_upserted_embeddings[0].values, k=1)
+    retrived_data= await get_temp_kb_RAG(pc,entity_id,data_to_be_upserted_embeddings[0].values, k=1)
 
     retrived_temp_kb=[]
     for match in retrived_data.get('matches',[]):
@@ -522,7 +522,7 @@ async def update_character_kb(pc,message_id, entity_id, character):
         inputs=[character],
         parameters={"input_type": "passage", "truncate": "END"}
     )
-    retrived_data= get_character_RAG(pc,entity_id,update_data_embeddings[0].values, k=1)
+    retrived_data= await get_character_RAG(pc,entity_id,update_data_embeddings[0].values, k=1)
     retrieved_character=[]
     for match in retrived_data.get('matches',[]):
         metadata=match.get('metadata',{})
@@ -910,7 +910,7 @@ async def upsert(inputs: UpsertInputs, background_tasks: BackgroundTasks):
             elif upsert_type == "character":
                 await update_character_kb(pc, message_id, entity_id, data)
             elif upsert_type == "conversation_history":
-                await upsert_pc_data(pc, entity_id, user_input=data, llm_response="NILL")
+                await upsert_pc_data(pc, entity_id, user_input=data, llm_response="NIL")
             else:
                raise HTTPException(status_code=400, detail="Invalid upsert type")
             
