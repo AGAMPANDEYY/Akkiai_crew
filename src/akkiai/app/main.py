@@ -833,17 +833,22 @@ async def chat(input: ChatInputs, background_tasks: BackgroundTasks):
         received_hash= input.HASH
         model_name= input.MODEL_NAME
 
-        if not (input_message and received_hash):
-            raise HTTPException(status_code=400, detail="Invalid input data")
+        #if not (input_message and received_hash):
+            #raise HTTPException(status_code=400, detail="Invalid input data")
         
         data_string=f"{input_message}|{model_name}"
         #compute hash from data string
         computed_hash= await compute_hash(data_string,SECRET_KEY)
 
         # Validate the hash
-        if not hmac.compare_digest(received_hash, computed_hash):
-            raise HTTPException(status_code=401, detail="Unauthorized: Hash does not match")
-        else: 
+        #if not hmac.compare_digest(received_hash, computed_hash):
+            #raise HTTPException(status_code=401, detail="Unauthorized: Hash does not match")
+        #else:
+        # 
+        """
+        For hashless test of deployment
+        """
+        if 1<4: 
             if not ANTHROPIC_API:
                 raise ValueError("ANTHROPIC_API environment variable not found. Please set it with your API key.")
 
@@ -887,10 +892,14 @@ async def upsert(inputs: UpsertInputs, background_tasks: BackgroundTasks):
         computed_hash= await compute_hash(data_string,SECRET_KEY)
 
         # Validate the hash
-        if not hmac.compare_digest(received_hash, computed_hash):
-            raise HTTPException(status_code=401, detail="Unauthorized: Hash does not match")
+        #if not hmac.compare_digest(received_hash, computed_hash):
+            #raise HTTPException(status_code=401, detail="Unauthorized: Hash does not match")
     
-        else: 
+        #else: 
+        """
+        For hashless test of deployment
+        """
+        if 1<4:
 
             pc=Pinecone(api_key=PINECONE_API_KEY)
 
