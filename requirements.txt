@@ -6,3 +6,4 @@ supabase
 diskcache
 anthropic
 python-Levenshtein
+pinecone

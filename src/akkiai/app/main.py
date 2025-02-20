@@ -553,7 +553,7 @@ async def update_character_kb(pc,message_id, entity_id, character):
             namespace=entity_id
         )
 
-def get_perm_kb_RAG(pc,entity_id, vector, k=3):
+async def get_perm_kb_RAG(pc,entity_id, vector, k=3):
     index=pc.Index(host="https://permanent-kb-py172ny.svc.aped-4627-b74a.pinecone.io")
     result=index.query(
         namespace=entity_id,
@@ -564,7 +564,7 @@ def get_perm_kb_RAG(pc,entity_id, vector, k=3):
     )
     return result
 
-def get_temp_kb_RAG(pc,entity_id, vector, k=3):
+async def get_temp_kb_RAG(pc,entity_id, vector, k=3):
     index=pc.Index(host="https://temporary-kb-py172ny.svc.aped-4627-b74a.pinecone.io")
     result=index.query(
         namespace=entity_id,
@@ -575,7 +575,7 @@ def get_temp_kb_RAG(pc,entity_id, vector, k=3):
     )
     return result    
 
-def get_character_RAG(pc,entity_id, vector, k=3):
+async def get_character_RAG(pc,entity_id, vector, k=3):
     index=pc.Index(host="https://character-kb-py172ny.svc.aped-4627-b74a.pinecone.io")
     result=index.query(
         namespace=entity_id,
@@ -585,6 +585,12 @@ def get_character_RAG(pc,entity_id, vector, k=3):
         include_metadata=True
     )
     return result 
+
+
+async def push_retrived_data_to_db(job_id,perm_kb,temp_kb,character,context_string):
+    supabase_key: str= os.environ.get("SUPABASE_KEY")
+    supabase: Client= create_client(url, supabase_key)
+    supabase.table("retrieved_chat_rag").insert({'job_id':job_id,'perm_kb':perm_kb, 'temp_kb':temp_kb,'character':character, "conversation_context":context_string}).execute()
 
 #running all the chats simultaneously in the background
 async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
@@ -612,9 +618,9 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
     Retriveing Permanent Temperory and Character Knowledge of the Entity
     """
 
-    result_perm_kb= get_perm_kb_RAG(pc,entity_id, input_embeddings[0].values, k=1)
-    result_temp_kb= get_temp_kb_RAG(pc,entity_id, input_embeddings[0].values, k=1)
-    result_character=get_character_RAG(pc,entity_id,input_embeddings[0].values, k=1)
+    result_perm_kb= await get_perm_kb_RAG(pc,entity_id, input_embeddings[0].values, k=1)
+    result_temp_kb= await get_temp_kb_RAG(pc,entity_id, input_embeddings[0].values, k=1)
+    result_character= await get_character_RAG(pc,entity_id,input_embeddings[0].values, k=1)
     
 
     retrieved_contexts = []
@@ -660,8 +666,6 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
 
     character="\n\n".join(retrieved_character)
 
-    #print("The RAG retrived data. \n Permanent KB: ", perm_kb, "\n Temporary KB: ",temp_kb,"\n character: ",character, "\n context of past conversation:", context_string)
-    
     system_prompt = f"""
         You are a highly specialized and empathetic assistant with deep expertise in tailoring your responses to individual users. Your role is to provide accurate, insightful, and personalized advice by taking into account the user's long-term background, current focus, personality traits, and past conversation context.
 
@@ -791,6 +795,13 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
     job_id= str(uuid.uuid4())
     supabase.table("kickoff_details").update({'kickoff_id':message_id,'job_status':job_status, 'update_date':update_date,}).eq("create_date",create_date).execute()
     supabase.table("run_details").insert({"kickoff_id": message_id,'task_name':task_name,'job_id':job_id, 'input':input_message,'output':response}).execute()
+    
+    """
+    Pushing RAG contexts to DB
+    """
+
+    await push_retrived_data_to_db(job_id,perm_kb,temp_kb,character,context_string)
+    
     webhook_url =os.environ.get("WEBHOOK_URL")
     return response
     """
@@ -898,8 +909,6 @@ async def upsert(inputs: UpsertInputs, background_tasks: BackgroundTasks):
         
     except Exception as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-
-
 
 @app.post("/train", dependencies=[Depends(authenticate_api_key)])
 async def train(inputs: TrainInputs):

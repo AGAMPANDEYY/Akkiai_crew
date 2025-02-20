@@ -23,7 +23,5 @@ EXPOSE 8000
 
 # Define environment variables (optional, if you need any specific configs) 
 #ENV ANTHROPIC_API_KEY=
-# Run the main script
-#CMD ["streamlit","run", "api/st_app.py"] #For streamlit to run
 # 127.0.0.1 for local access while for outside access as well use 0.0.0.0 
-CMD ["uvicorn", "main2:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

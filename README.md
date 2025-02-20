@@ -2,7 +2,7 @@
 
 This branch updated on 17th Feb 2025.
 
-NEW UPDATE-- TEST-- Seperated /chat and /upsert endpoints and no push from chat endpoint (only fetch from RAG)
+NEW UPDATE-- TEST-- Added RAG retrieved data push to Supabase DB. 
  
 1. Added crew 1-9 for production
 2. Output pydantic only done for crew 1 and 9, have to do for others
@@ -14,3 +14,4 @@ NEW UPDATE-- TEST-- Seperated /chat and /upsert endpoints and no push from chat 
 8. Updated the config files, it now takes inputs only once. Changed pydantic a bit (Not for Production)
 9. Added Pinecone Vector DB for Personalised Chat for each entity_id (namespace) user/project --TEST--
 10. Added Permanent Temporary and Character Pinecone RAG and implemented no duplicate records to Pinecone---TEST---
+11. Seperated /chat and /upsert endpoints and no push from chat endpoint (only fetch from RAG)
