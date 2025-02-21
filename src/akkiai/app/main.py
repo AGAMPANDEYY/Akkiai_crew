@@ -47,6 +47,7 @@ LLAMA_3_API_KEY=os.getenv("LLAMA_31_API_KEY")
 CACHE_DIR = './prompt_cache_main'  # Cache will be stored in this directory
 cache = Cache(CACHE_DIR)
 PINECONE_API_KEY= os.getenv("PINECONE_API_KEY")
+PERPLEXITY_API_KEY=os.getenv("PERPLEXITY_API_KEY")
 
 #Configuration for CORS 
 
@@ -667,7 +668,9 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
     character="\n\n".join(retrieved_character)
 
     system_prompt = f"""
-        You are a highly specialized and empathetic assistant with deep expertise in tailoring your responses to individual users. Your role is to provide accurate, insightful, and personalized advice by taking into account the user's long-term background, current focus, personality traits, and past conversation context.
+        You are a highly specialized assistant with deep expertise in tailoring your responses to individual users. 
+        Your role is to provide accurate, insightful, and personalized response by taking into account the user's long-term background, 
+        current temporary knowledge base trends, personality traits, and past conversation context.
 
         Below is the detailed profile of the user:
         -------------------------------------------------
@@ -692,7 +695,6 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
 
         Your answer should be precise, well-organized, and directly address the user's query while remaining deeply personalized and context-aware.
         """
-    print(system_prompt)
     if API_NAME=="claude-3-haiku-20240307":        
         #conversation_history.update_user_turn(input.MESSAGE)
         client= anthropic.Anthropic(api_key=ANTHROPIC_API)
@@ -733,7 +735,10 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
         completion=client.chat.completions.create(
             model="deepseek-chat",
             #messages=conversation_history.get_turns() + [{"role":"system","content":system_message}]
-            messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
+            messages=[
+                            {"role": "system", "content": system_message},
+                             {"role": "user", "content": input.MESSAGE}
+                     ]
         )
         response= completion.choices[0].message.content
         message_id=completion.id
@@ -741,13 +746,16 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
         conversation_history.update_assistant_turn(response)
 
     elif API_NAME=="gpt-4o-mini":
-            
+            system_message = system_prompt
             conversation_history.update_user_turn(input.MESSAGE)
             client= OpenAI(api_key=ChatGPT_API)
             completion = client.chat.completions.create(
                 model="gpt-4o-mini",
                 #messages= conversation_history.get_turns() + [{"role":"system","content":system_prompt}]
-                messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
+                messages=[
+                            {"role": "system", "content": system_message},
+                             {"role": "user", "content": input.MESSAGE}
+                        ]
             )
             response= completion.choices[0].message.content
             message_id=completion.id
@@ -755,12 +763,16 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
             conversation_history.update_assistant_turn(response)
 
     elif API_NAME=="grok-beta":
+          system_message = system_prompt
           conversation_history.update_user_turn(input.MESSAGE)
           client= OpenAI(api_key=GROK_API, base_url="https://api.x.ai/v1")
           completion = client.chat.completions.create(
                 model="gpt-4o-mini",
                 #messages=conversation_history.get_turns() + [{"role":"system","content":system_prompt}]
-                messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
+                messages=[
+                            {"role": "system", "content": system_message},
+                             {"role": "user", "content": input.MESSAGE}
+                        ]
             )
           response= completion.choices[0].message.content
           message_id=completion.id
@@ -768,17 +780,37 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
           conversation_history.update_assistant_turn(response) 
 
     elif API_NAME=="llama3.1-70b":
+        system_message = system_prompt
         conversation_history.update_user_turn(input.MESSAGE)
         client= OpenAI(api_key=LLAMA_3_API_KEY, base_url="https://api.llama-api.com")
         completion = client.chat.completions.create(
                 model="llama3.1-70b",
                 #messages=conversation_history.get_turns() + [{"role":"system","content":system_prompt}]
-                messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
+                messages=[
+                            {"role": "system", "content": system_message},
+                             {"role": "user", "content": input.MESSAGE}
+                        ]
             )
         response= completion.choices[0].message.content
         message_id=str(uuid.uuid4())
         task_name=completion.model 
         completion.id=message_id
+        conversation_history.update_assistant_turn(response)
+    
+    elif API_NAME=="sonar-pro":
+        system_message = system_prompt
+        conversation_history.update_user_turn(input.MESSAGE)
+        client= OpenAI(api_key=PERPLEXITY_API_KEY, base_url="https://api.perplexity.ai")
+        completion = client.chat.completions.create(
+                model="sonar-pro",
+                messages=[
+                            {"role": "system", "content": system_message},
+                             {"role": "user", "content": input.MESSAGE}
+                        ]
+            )
+        response= completion.choices[0].message.content
+        message_id=completion.id
+        task_name=completion.model 
         conversation_history.update_assistant_turn(response)
 
     message_id=completion.id
