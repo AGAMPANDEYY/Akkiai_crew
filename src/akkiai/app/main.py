@@ -667,7 +667,7 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
 
     character="\n\n".join(retrieved_character)
 
-    system_prompt = f"""
+    system_message = f"""
         You are a highly specialized and empathetic assistant with deep expertise in tailoring your responses to individual users. Your role is to provide accurate, insightful, and personalized advice by taking into account the user's long-term background, current focus, personality traits, and past conversation context.
 
         Below is the detailed profile of the user:
@@ -693,7 +693,6 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
 
         Your answer should be precise, well-organized, and directly address the user's query while remaining deeply personalized and context-aware.
         """
-    print(system_prompt)
     if API_NAME=="claude-3-haiku-20240307":        
         #conversation_history.update_user_turn(input.MESSAGE)
         client= anthropic.Anthropic(api_key=ANTHROPIC_API)
@@ -734,7 +733,10 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
         completion=client.chat.completions.create(
             model="deepseek-chat",
             #messages=conversation_history.get_turns() + [{"role":"system","content":system_message}]
-            messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
+            messages=[
+                            {"role": "system", "content": system_message},
+                             {"role": "user", "content": input.MESSAGE}
+                        ]
         )
         response= completion.choices[0].message.content
         message_id=completion.id
@@ -748,7 +750,10 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
             completion = client.chat.completions.create(
                 model="gpt-4o-mini",
                 #messages= conversation_history.get_turns() + [{"role":"system","content":system_prompt}]
-                messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
+                messages=[
+                            {"role": "system", "content": system_message},
+                             {"role": "user", "content": input.MESSAGE}
+                        ]
             )
             response= completion.choices[0].message.content
             message_id=completion.id
@@ -761,7 +766,10 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
           completion = client.chat.completions.create(
                 model="gpt-4o-mini",
                 #messages=conversation_history.get_turns() + [{"role":"system","content":system_prompt}]
-                messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
+                messages=[
+                            {"role": "system", "content": system_message},
+                             {"role": "user", "content": input.MESSAGE}
+                        ]
             )
           response= completion.choices[0].message.content
           message_id=completion.id
@@ -774,7 +782,10 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
         completion = client.chat.completions.create(
                 model="llama3.1-70b",
                 #messages=conversation_history.get_turns() + [{"role":"system","content":system_prompt}]
-                messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
+                messages=[
+                            {"role": "system", "content": system_message},
+                             {"role": "user", "content": input.MESSAGE}
+                        ]
             )
         response= completion.choices[0].message.content
         message_id=completion.id
@@ -785,7 +796,10 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
         client= OpenAI(api_key=PERPLEXITY_API_KEY, base_url="https://api.perplexity.ai")
         completion = client.chat.completions.create(
                 model="sonar-pro",
-                messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
+                messages=[
+                            {"role": "system", "content": system_message},
+                             {"role": "user", "content": input.MESSAGE}
+                        ]
             )
         response= completion.choices[0].message.content
         message_id=completion.id

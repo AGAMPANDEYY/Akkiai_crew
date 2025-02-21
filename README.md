@@ -2,7 +2,7 @@
 
 This branch updated on 21st Feb 2025.
 
-NEW UPDATE-- TEST-- Added Perplexity sonar-pro model for /chat.
+NEW UPDATE-- TEST-- Added Perplexity sonar-pro model for /chat and fixed other api bugs.
  
 1. Added crew 1-9 for production
 2. Output pydantic only done for crew 1 and 9, have to do for others
