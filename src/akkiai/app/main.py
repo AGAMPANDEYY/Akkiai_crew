@@ -47,6 +47,7 @@ LLAMA_3_API_KEY=os.getenv("LLAMA_31_API_KEY")
 CACHE_DIR = './prompt_cache_main'  # Cache will be stored in this directory
 cache = Cache(CACHE_DIR)
 PINECONE_API_KEY= os.getenv("PINECONE_API_KEY")
+PERPLEXITY_API_KEY=os.getenv("PERPLEXITY_API_KEY")
 
 #Configuration for CORS 
 
@@ -776,11 +777,21 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
                 messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
             )
         response= completion.choices[0].message.content
-        message_id=str(uuid.uuid4())
+        message_id=completion.id
         task_name=completion.model 
-        completion.id=message_id
         conversation_history.update_assistant_turn(response)
-
+    elif API_NAME=="sonar-pro":
+        conversation_history.update_user_turn(input.MESSAGE)
+        client= OpenAI(api_key=PERPLEXITY_API_KEY, base_url="https://api.perplexity.ai")
+        completion = client.chat.completions.create(
+                model="sonar-pro",
+                messages=[input.MESSAGE] + [{"role":"system","content":system_message}]
+            )
+        response= completion.choices[0].message.content
+        message_id=completion.id
+        task_name=completion.model 
+        conversation_history.update_assistant_turn(response)
+      
     message_id=completion.id
     task_name=completion.model
     """

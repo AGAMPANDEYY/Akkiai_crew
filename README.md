@@ -1,8 +1,8 @@
 # Akkiai_crew
 
-This branch updated on 17th Feb 2025.
+This branch updated on 21st Feb 2025.
 
-NEW UPDATE-- TEST-- Added RAG retrieved data push to Supabase DB. 
+NEW UPDATE-- TEST-- Added Perplexity sonar-pro model for /chat.
  
 1. Added crew 1-9 for production
 2. Output pydantic only done for crew 1 and 9, have to do for others
@@ -15,3 +15,4 @@ NEW UPDATE-- TEST-- Added RAG retrieved data push to Supabase DB.
 9. Added Pinecone Vector DB for Personalised Chat for each entity_id (namespace) user/project --TEST--
 10. Added Permanent Temporary and Character Pinecone RAG and implemented no duplicate records to Pinecone---TEST---
 11. Seperated /chat and /upsert endpoints and no push from chat endpoint (only fetch from RAG)
+12. Added RAG retrieved data push to Supabase DB. 
