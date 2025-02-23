@@ -697,7 +697,6 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
         #conversation_history.update_user_turn(input.MESSAGE)
         client= anthropic.Anthropic(api_key=ANTHROPIC_API)
         MODEL_NAME="claude-3-haiku-20240307"
-        system_message = system_prompt
 
         completion = client.messages.create(
                     model=MODEL_NAME,
@@ -727,7 +726,6 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
         conversation_history.update_assistant_turn(response)
 
     elif API_NAME=="deepseek-chat":
-        system_message = system_prompt
         conversation_history.update_user_turn(input.MESSAGE)
         client= OpenAI(api_key=DEEPSEEK_API, base_url="https://api.deepseek.com")
         completion=client.chat.completions.create(
@@ -744,7 +742,6 @@ async def chat_bg(input,input_message, kickoff_id,create_date, API_NAME):
         conversation_history.update_assistant_turn(response)
 
     elif API_NAME=="gpt-4o-mini":
-            
             conversation_history.update_user_turn(input.MESSAGE)
             client= OpenAI(api_key=ChatGPT_API)
             completion = client.chat.completions.create(
