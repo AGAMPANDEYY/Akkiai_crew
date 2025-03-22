@@ -1,27 +1,27 @@
 value_proposition_canvas: 
   description: >
-    You are tasked with conducting a Stages of Awareness analysis based on the provided information about a target audience, buyer persona, motivations and desired outcomes, business details, and product/service/solutions details. The Stages of Awareness concept, developed by Eugene Schwartz, helps understand how aware potential customers are of their problems and the available solutions.
+    You will be creating a Value Proposition Canvas to understand the target audience and align a product or service with their needs. Follow these steps carefully:
 
-    Here is the information of the startup you'll be working with:
-
+    These are the startup details below 
     <startup_info>
     {STARTUP_INFO}
     </startup_info>
 
-    Using this information, analyze the target audience's awareness level across the following stages:
+    Now, create the Value Proposition Canvas by following these steps:
 
-    1. Unaware: The audience doesn't know they have a problem.
-    2. Problem Aware: They know they have a problem but don't know there's a solution.
-    3. Solution Aware: They know a solution exists but don't know about the specific product/service.
-    4. Product Aware: They know about the product/service but aren't sure if it's right for them.
-    5. Most Aware: They know a lot about the product/service and are almost ready to buy.
+    1. Customer Profile:
+      a. Customer Jobs: Identify 3-5 key tasks or jobs the target audience is trying to accomplish. Include functional, emotional, and social jobs if applicable.
+      b. Customer Pains: List 3-5 main frustrations, challenges, or risks the target audience faces while trying to complete these jobs.
+      c. Customer Gains: Describe 3-5 positive outcomes or benefits the target audience is seeking.
 
-    For each stage, consider:
-    - What percentage of the target audience might be in this stage?
-    - What key messages or information would resonate with people in this stage?
-    - What marketing channels or tactics might be most effective for reaching people in this stage?
-    Ensure that your analysis is thorough, insightful, and directly relates to the provided information about the 
-    target audience, buyer persona, motivations, business, and product/service details.
+    2. Value Map:
+      a. Pain Relievers: Explain how the product or service alleviates 3-5 of the identified customer pains.
+      b. Gain Creators: Describe how the product or service delivers 3-5 of the desired customer gains.
+      c. Products & Services: List the key features or aspects of the product or service that help customers get their jobs done, relieve pains, or create gains.
+
+    3. Fit Evaluation:
+      Analyze how well the product or service fits with the customer's needs by comparing the Pain Relievers and Gain Creators to the identified Pains and Gains.
+
 
   expected_output: >
     <value_proposition_canvas>

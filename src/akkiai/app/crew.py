@@ -1100,9 +1100,9 @@ class crew5():
         )
     #Agent2
     @agent
-    def TechnologyAdoptionSpecilistAgent(self) -> Agent:
+    def TechnologyAdoptionSpecialistAgent(self) -> Agent:
         return Agent(
-            config=self.agents_config['TechnologyAdoptionSpecilistAgent'],
+            config=self.agents_config['TechnologyAdoptionSpecialistAgent'],
             llm=self.selected_llm,
             #llm=self.deepseek_llm,
             #verbose=True
@@ -1133,7 +1133,7 @@ class crew5():
     def MarketReadinessAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['market_readiness'],
-            output_pydantic=Task41Pydantic,
+            output_pydantic=Task51Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1142,7 +1142,7 @@ class crew5():
     def TechnologyAdoptionSpecilistAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['technology_adoption_specilist'],
-            output_pydantic=Task42Pydantic,
+            output_pydantic=Task52Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1151,7 +1151,7 @@ class crew5():
     def RiskAssesmentSpecialistAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['risk_assessment_specialist'],
-            output_pydantic=Task43Pydantic,
+            output_pydantic=Task53Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1160,7 +1160,7 @@ class crew5():
     def BlueOceanSpecialistAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['blue_ocean_specialist'],
-            output_pydantic=Task44Pydantic,
+            output_pydantic=Task54Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1362,7 +1362,7 @@ class crew6():
     def TamSamSomAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['tam_sam_som'],
-            output_pydantic=Task41Pydantic,
+            output_pydantic=Task61Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1371,7 +1371,7 @@ class crew6():
     def FutureCompetitorsAnalysisAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['future_competitors_analysis'],
-            output_pydantic=Task42Pydantic,
+            output_pydantic=Task62Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1380,7 +1380,7 @@ class crew6():
     def BottomUpAnalysisAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['bottom_up_analysis'],
-            output_pydantic=Task42Pydantic,
+            output_pydantic=Task63Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1389,7 +1389,7 @@ class crew6():
     def StrategicGroupAnalysisAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['strategic_group_analysis'],
-            output_pydantic=Task42Pydantic,
+            output_pydantic=Task64Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1398,7 +1398,7 @@ class crew6():
     def PorterFiveForcesAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['porters_five_forces'],
-            output_pydantic=Task42Pydantic,
+            output_pydantic=Task65Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1407,7 +1407,7 @@ class crew6():
     def SWOTAnalysisAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['swot_analysis'],
-            output_pydantic=Task42Pydantic,
+            output_pydantic=Task66Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1416,7 +1416,7 @@ class crew6():
     def TopDownAnalysisAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['top_down_analysis'],
-            output_pydantic=Task42Pydantic,
+            output_pydantic=Task67Pydantic,
             callback=self.task_output_callback
         )
 
@@ -1588,7 +1588,7 @@ class crew7():
     def LeanCanvasMVPAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['lean_canvas_mvp'],
-            output_pydantic=Task41Pydantic,
+            output_pydantic=Task71Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1597,7 +1597,7 @@ class crew7():
     def RoadmapMVPAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['roadmap_mvp'],
-            output_pydantic=Task42Pydantic,
+            output_pydantic=Task72Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1606,7 +1606,7 @@ class crew7():
     def PRDTemplateAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['prd_template'],
-            output_pydantic=Task43Pydantic,
+            output_pydantic=Task73Pydantic,
             callback=self.task_output_callback
         )
     
@@ -1615,7 +1615,7 @@ class crew7():
     def TechStackFrameworkAgent_task(self) -> Task:
         return Task(
             config=self.tasks_config['techstack_framework'],
-            output_pydantic=Task44Pydantic,
+            output_pydantic=Task74Pydantic,
             callback=self.task_output_callback
         )
     

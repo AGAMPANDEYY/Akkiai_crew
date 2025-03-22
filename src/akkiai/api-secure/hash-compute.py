@@ -2,8 +2,8 @@ import hmac
 import hashlib
 import os 
 
-solution_id="4"
-input1="string"
+solution_id="5"
+input1="Akki AI is a Multi-Agent AI CoPilot for Founders and Investors.\n\nThis helps founders to get quick and accurate feedback on different aspects of their startup pitch, strategy, and operations. On the other hand, it helps investor analysts evaluate and analyze thousands of idea pitches/applications, identifying potential unicorns, saving them time and cost."
 input2="string"
 input3="string"
 input4="string"

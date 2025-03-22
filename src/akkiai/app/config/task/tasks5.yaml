@@ -87,7 +87,7 @@ technology_adoption_specilist:
       c. Marketing strategy suggestions
       d. Feature prioritization guidelines
 
-    Before providing your final analysis, wrap your analysis in <technology_adoption_analysis> tags. In this section:
+    Before providing your final analysis, add your analysis in technology_adoption_analysis JSON key and keep the analysis in string properly formatted. In this section:
     1. List and briefly describe the key elements of the startup information (target audience, product details, value proposition, etc.).
     2. Map these elements to different stages of the Technology Adoption Lifecycle.
     3. For each stage, consider and note potential challenges and opportunities.

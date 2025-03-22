@@ -7,3 +7,6 @@ diskcache
 anthropic
 python-Levenshtein
 pinecone
+litellm
+litellm[proxy]
+langfuse>=2.0.0

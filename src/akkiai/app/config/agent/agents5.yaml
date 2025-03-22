@@ -13,7 +13,6 @@ MarketReadinessAgent:
     businesses thrive in competitive environments.
   memory: False
 
-
 TechnologyAdoptionSpecialistAgent:
   role: TechnologyAdoptionSpecialistAgent
   goal: 

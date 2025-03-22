@@ -1,9 +1,10 @@
 # Akkiai_crew
-
-This branch updated on 21st Feb 2025.
-
-NEW UPDATE-- TEST-- Added Perplexity sonar-pro model for /chat and fixed other api bugs.
+## HASHLESS TEST
  
+This branch was updated on 22nd March 2025.
+
+NEW UPDATE-- TEST-- Added LiteLLM for model configurations, updated crew.py and haveOne Prod, One Test. THIS VERSION HAS NOT BEEN PUSHED TO TEST EC2 SERVER. 
+
 1. Added crew 1-9 for production
 2. Output pydantic only done for crew 1 and 9, have to do for others
 3. updated the directory of codes
@@ -16,3 +17,4 @@ NEW UPDATE-- TEST-- Added Perplexity sonar-pro model for /chat and fixed other a
 10. Added Permanent Temporary and Character Pinecone RAG and implemented no duplicate records to Pinecone---TEST---
 11. Seperated /chat and /upsert endpoints and no push from chat endpoint (only fetch from RAG)
 12. Added RAG retrieved data push to Supabase DB. 
+13. Added Perplexity sonar-pro model for /chat and fixed other api bugs.
