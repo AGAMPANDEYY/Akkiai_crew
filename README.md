@@ -1,5 +1,4 @@
 # Akkiai_crew
-## HASHLESS TEST
  
 This branch was updated on 22nd March 2025.
 

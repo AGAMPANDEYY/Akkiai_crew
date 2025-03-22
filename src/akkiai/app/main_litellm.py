@@ -813,11 +813,11 @@ async def chat(input: ChatInputs, background_tasks: BackgroundTasks):
         #compute hash from data string
         computed_hash= await compute_hash(data_string,SECRET_KEY)
 
-        # Validate the hash
-        #if not hmac.compare_digest(received_hash, computed_hash):
-            #raise HTTPException(status_code=401, detail="Unauthorized: Hash does not match")
-        #else:
-        if 1<4: 
+        #Validate the hash
+        if not hmac.compare_digest(received_hash, computed_hash):
+            raise HTTPException(status_code=401, detail="Unauthorized: Hash does not match")
+        else:
+            #if 1<4: 
             if not ANTHROPIC_API:
                 raise ValueError("ANTHROPIC_API environment variable not found. Please set it with your API key.")
 
